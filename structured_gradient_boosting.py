@@ -304,6 +304,27 @@ class StructuredGradientBoosting(object):
             result.append((new_X, func_grad, match_cnt, gold_cnt))
         q.put(result)
 
+    def predict(self, X, indices, ent_ids):
+        """
+        Function to predict an output sequence for one document
+
+        Inputs
+        -------
+            X: a local feature matrix for one document
+            indices: a list of pair '(a list of mention indices, a list of gold entity ids)'
+                     for one document (Note: the list of gold entity ids will all be NULL, but this is kept
+                     for compatibility with the make_idx_data function output)
+            ent_ids: wikiID for entities
+        
+        Outputs
+        -------
+            pred_seq_translated: a list of predicted entity ids corresponding to each mention
+        """
+        doc, _ = indices[0]
+        feat_seq_logprobs = self.beam_search(doc, X, ent_ids, gold_seq=None)
+        pred_seq = feat_seq_logprobs[-1][0][1]
+        pred_seq_translated = [ent_ids[idx] for idx in pred_seq]
+        return pred_seq_translated
 
     # EVALUATION
     def get_acc(self, X, y, indices, ent_ids):
